@@ -7,16 +7,14 @@ require 'pry'
 # form the check digit by subtracting the last digit of the sum from 10
 # (sum of the selectively doubled array + the check digit) modulo 10, if 0 valid, if not invalid
 class CreditChecker
-  attr_reader :card_string,:doubled, :undoubled
+  attr_reader :card_string
   attr_accessor :presum, :check_digit, :sum, :check_number
   def initialize(card_string)
     @card_string = card_string
   end
 
   def run
-    selective_doubler
-    doubled_refiner
-    flatter_zipper
+    cleaner_doubler
     summer
     checker_digit
     validate
@@ -26,29 +24,22 @@ class CreditChecker
     @card_digits ||= card_string.each_char.map(&:to_i)
   end
 
-  def selective_doubler
-    @doubled = []
-    @undoubled = []
-    card_digits.each_with_index do |digit,index|
-          if index.odd?
-            digit = digit * 2
-            @doubled << digit
-          else
-            @undoubled << digit
-          end
-        end
-  end
-  # def cleaner_doubler
-  #   @doubled =[]
-  #   card_digits.
-
-  def doubled_refiner
-    doubled.map! do |digit|
-      if digit>9
-        digit-9
+  def cleaner_doubler
+    self.presum = card_digits.map.with_index do |digit,index|
+      if index.odd?
+        doubled = digit * 2
+        doubled_refiner(doubled)
       else
         digit
       end
+    end
+  end
+
+  def doubled_refiner(number)
+    if number > 9
+      number - 9
+    else
+      number
     end
   end
 
@@ -57,7 +48,7 @@ class CreditChecker
   end
 
   def summer
-    self.sum = @presum.reduce(:+)
+    self.sum = presum.reduce(:+)
   end
 
   def checker_digit
